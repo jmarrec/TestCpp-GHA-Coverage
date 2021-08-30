@@ -6,6 +6,7 @@
 
 namespace civil_registry {
 
+// cppcheck-suppress passedByValue
 Person::Person(std::string t_name) noexcept : m_name(std::move(t_name)) {}
 
 std::string Person::getName() const {

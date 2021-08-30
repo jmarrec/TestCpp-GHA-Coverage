@@ -1,0 +1,52 @@
+name: cppcheck
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install cppcheck
+      shell: bash
+      run: |
+          # Current stable (2.3-25-20201207-23616-ga9f4a14c8, rev 1637) is broken, so use edge for now
+          # cppcheck has been removed completely from snap actually
+          # sudo snap install cppcheck --edge
+          mkdir cppcheck
+          cd cppcheck
+          wget https://github.com/danmar/cppcheck/archive/2.5.tar.gz
+          tar xfz 2.5.tar.gz
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ../cppcheck-2.5/
+          make -j $(nproc)
+          sudo make install
+
+    - name: Run cppcheck
+      shell: bash
+      run: |
+          cppcheck \
+            --std=c++20 \
+            --suppress=noExplicitConstructor \
+            --inline-suppr \
+            --enable=all \
+            --template='[{file}:{line}]:({severity}),[{id}],{message}' \
+            --force -q -j $(nproc) \
+            ./src 2>&1 | tee cppcheck.txt
+
+    - name: Parse and colorize cppcheck
+      shell: bash
+      run: python ./ci/colorize_cppcheck_results.py
+
+    - name: Upload cppcheck results as artifact
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+          name: TestCpp-GHA-Coverage-${{ github.sha }}-cppcheck_results.txt
+          path: cppcheck.txt
