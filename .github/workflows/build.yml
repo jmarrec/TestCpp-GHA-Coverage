@@ -1,0 +1,57 @@
+name: C++ CI
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install conan
+      run: |
+          python --version
+          pip install conan
+          conan --version
+          echo "Enabling conan revisions and setting parallel_download"
+          conan config set general.revisions_enabled=True
+          conan config set general.parallel_download=8
+          conan user
+
+    - name: Install deps
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install -y lcov gcovr ninja-build
+        mkdir build
+
+    - name: CMake configure
+      working-directory: ./build
+      shell: bash
+      run: |
+        set -x
+        cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON ../
+
+    - name: Build
+      working-directory: ./build
+      shell: bash
+      run: |
+        set -x
+        ninja
+
+    - name: Produce coverage report
+      working-directory: ./build
+      shell: bash
+      run: |
+        set -x
+        lcov --zerocounters --directory .
+        ./Products/testlib_tests
+        gcovr --root ../ --exclude-directories ../test/ --xml-pretty --xml coverage.xml
+
+
+
