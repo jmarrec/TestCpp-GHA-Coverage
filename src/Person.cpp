@@ -17,10 +17,10 @@ bool Person::setName(const std::string& t_newName) {
   if (std::find(rejectedNames.begin(), rejectedNames.end(), t_newName) != rejectedNames.end()) {
     fmt::print("{} was rejected by the government\n", t_newName);
     return false;
-  } else {
-    m_name = t_newName;
-    return true;
   }
+
+  m_name = t_newName;
+  return true;
 }
 
 }  // namespace civil_registry
