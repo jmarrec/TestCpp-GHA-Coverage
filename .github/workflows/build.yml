@@ -53,5 +53,7 @@ jobs:
         ./Products/testlib_tests
         gcovr --root ../ --exclude-directories ../test/ --xml-pretty --xml coverage.xml
 
-
-
+    - name: Publish to codecov
+      uses: codecov/codecov-action@v2
+      with:
+        files: ./build/coverage.xml
