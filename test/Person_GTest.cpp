@@ -23,7 +23,7 @@ TEST(PersonTest, copy) {
   EXPECT_NE(p.getName(), p2.getName());
 }
 
-TEST(PersonTest, DISABLED_ostream) {
+TEST(PersonTest, ostream) {
   Person p("Julien");
   std::stringstream ss;
   ss << p;
