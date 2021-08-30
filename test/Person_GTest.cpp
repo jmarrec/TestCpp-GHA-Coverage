@@ -2,6 +2,8 @@
 
 #include "../src/Person.hpp"
 
+#include <sstream>
+
 using namespace civil_registry;
 
 TEST(PersonTest, Ctors) {
@@ -19,4 +21,11 @@ TEST(PersonTest, copy) {
   EXPECT_FALSE(p2.setName("Adolf"));
   EXPECT_TRUE(p2.setName("Juliet"));
   EXPECT_NE(p.getName(), p2.getName());
+}
+
+TEST(PersonTest, ostream) {
+  Person p("Julien");
+  std::stringstream ss;
+  ss << p;
+  EXPECT_EQ("Individual named Julien", ss.str());
 }
