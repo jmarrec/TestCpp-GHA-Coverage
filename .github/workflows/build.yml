@@ -23,7 +23,7 @@ jobs:
     - name: Install conan
       run: |
           python --version
-          pip install conan
+          pip install conan gcovr
           conan --version
           echo "Enabling conan revisions and setting parallel_download"
           conan config set general.revisions_enabled=True
@@ -34,7 +34,7 @@ jobs:
       shell: bash
       run: |
         sudo apt update
-        sudo apt install -y lcov gcovr ninja-build
+        sudo apt -y -qq install ninja-build
         mkdir build
 
     - name: CMake configure
