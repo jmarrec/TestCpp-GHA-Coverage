@@ -72,7 +72,7 @@ jobs:
       shell: bash
       run: |
         set -x
-        ./Products/testlib_tests
+        ctest -j $(nproc)
         gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
 
     - name: Publish to codecov

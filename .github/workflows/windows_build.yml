@@ -67,7 +67,7 @@ jobs:
     - name: Produce coverage report
       working-directory: ./build
       run: |
-        OpenCppCoverage.exe --sources TestCpp-GHA-Coverage\src --export_type cobertura:coverage.xml -- Products\testlib_tests.exe
+        OpenCppCoverage.exe --sources TestCpp-GHA-Coverage\src --export_type cobertura:coverage.xml --cover_children -- ctest -C Debug
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v2
