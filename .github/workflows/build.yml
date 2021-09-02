@@ -45,6 +45,9 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           echo "Using brew to install ninja"
           brew install ninja
+          # echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> $GITHUB_ENV
+          echo "Adding SDKROOT to GITHUB_ENV"
+          echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
         fi;
 
         mkdir build
