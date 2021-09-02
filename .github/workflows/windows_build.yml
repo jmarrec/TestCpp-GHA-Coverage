@@ -1,0 +1,77 @@
+name: C++ CI Windows
+
+on:
+  push:
+    branches: [ main ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install conan
+      run: |
+          python --version
+          pip install conan gcovr
+          conan --version
+          echo "Enabling conan revisions and setting parallel_download"
+          conan config set general.revisions_enabled=True
+          conan config set general.parallel_download=8
+          conan user
+
+
+    - name: Install deps
+      shell: bash
+      run: |
+        mkdir build
+        echo "Using chocolatey to install OpenCppCoverage"
+        choco install opencppcoverage
+        echo "C:/Program Files/OpenCppCoverage" >> $GITHUB_PATH
+
+        echo "Using chocolatey to install ninja"
+        choco install ninja
+
+        # C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise
+        MSVC_DIR=$(cmd.exe /c "vswhere -products * -requires Microsoft.Component.MSBuild -property installationPath -latest")
+        echo "Latest is: $MSVC_DIR"
+        echo "MSVC_DIR=$MSVC_DIR" >> $GITHUB_ENV
+        # add folder containing vcvarsall.bat
+        echo "$MSVC_DIR\VC\Auxiliary\Build" >> $GITHUB_PATH
+
+    - name: CMake configure & build
+      working-directory: ./build
+      shell: cmd
+      run: |
+        echo "Using vcvarsall to initialize the development environment"
+        call vcvarsall.bat x64
+        # Note ENABLE_COVERAGE isn't an option on MSVC, it works differently
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug ../
+        # We need vcvarsall.bat to be called in the current step where ninja is invoked, so do that here as well
+        ninja
+
+    - name: Produce coverage report
+      working-directory: ./build
+      run: |
+        OpenCppCoverage.exe --sources TestCpp-GHA-Coverage\src --export_type cobertura:coverage.xml -- Products\testlib_tests.exe
+
+    - name: Publish to codecov
+      uses: codecov/codecov-action@v2
+      with:
+        flags: ${{ runner.os }}
+        name: ${{ runner.os }}-coverage
+        files: ./build/coverage.xml

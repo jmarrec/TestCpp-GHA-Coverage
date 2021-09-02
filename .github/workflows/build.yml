@@ -58,7 +58,7 @@ jobs:
       shell: bash
       run: |
         set -x
-        cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON ../
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON ../
 
     - name: Build
       working-directory: ./build
