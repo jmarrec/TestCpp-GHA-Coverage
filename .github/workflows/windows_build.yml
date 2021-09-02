@@ -24,7 +24,7 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install conan and openccpcoverage
+    - name: Install conan
       run: |
           python --version
           pip install conan gcovr
@@ -36,6 +36,7 @@ jobs:
 
 
     - name: Install deps
+      shell: bash
       run: |
         mkdir build
         echo "Using chocolatey to install OpenCppCoverage"
@@ -56,7 +57,7 @@ jobs:
       run: |
         echo "Using vcvarsall to initialize the development environment"
         call vcvarsall.bat x64
-        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON ../
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DENABLE_COVERAGE:BOOL=ON ../
 
     - name: Build
       working-directory: ./build
@@ -65,11 +66,8 @@ jobs:
 
     - name: Produce coverage report
       working-directory: ./build
-      shell: bash
       run: |
-        set -x
-        OpenCppCoverage --sources ../* ./Products/testlib_tests
-        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --xml-pretty --xml coverage.xml .
+        OpenCppCoverage.exe --sources TestCpp-GHA-Coverage\src --export_type cobertura:coverage.xml -- Products\testlib_tests.exe
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v2
