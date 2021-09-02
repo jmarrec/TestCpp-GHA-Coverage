@@ -22,3 +22,11 @@ Additionally, it includes a [cppcheck action](.github/workflows/cppcheck.yml) wi
 There is also a [clang-format action](.github/workflows/clang-format-check.yml) that uses the `.clang-format` file in the repo.
 
 (Note: A `.clang-tidy` file is also provided, but I didn't bother adding an action for that.)
+
+## Multi platform support
+
+`Person.cpp` has a few compiler specific macros, so that we can test merging reports from several platforms on codecov. See [src/Person.cpp#L18-L27](https://github.com/jmarrec/TestCpp-GHA-Coverage/blob/408d98bb68b05222006d052dd6367090827ed8fc/src/Person.cpp#L18-L27)
+
+![Mac+Ubuntu](https://user-images.githubusercontent.com/5479063/131817697-44e8ac87-577e-4531-9bf5-fd05a07bba28.png)
+
+See [PR#5](https://github.com/jmarrec/TestCpp-GHA-Coverage/pull/5) for more info including before/after screenshots

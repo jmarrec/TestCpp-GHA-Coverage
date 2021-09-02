@@ -2,7 +2,7 @@ name: C++ CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, mac ]
     # Sequence of patterns matched against refs/tags
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
@@ -11,7 +11,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: Default is true, switch to false to allow one platform to fail and still run others
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -33,8 +38,19 @@ jobs:
     - name: Install deps
       shell: bash
       run: |
-        sudo apt update
-        sudo apt -y -qq install ninja-build
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          echo "Using apt to install ninja"
+          sudo apt update
+          sudo apt -y -qq install ninja-build
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          echo "Using brew to install ninja"
+          brew install ninja
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 10.15"
+          echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> $GITHUB_ENV
+          echo "Adding SDKROOT to GITHUB_ENV"
+          echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
+        fi;
+
         mkdir build
 
     - name: CMake configure
@@ -57,9 +73,11 @@ jobs:
       run: |
         set -x
         ./Products/testlib_tests
-        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --xml-pretty --xml coverage.xml .
+        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v2
       with:
+        flags: ${{ runner.os }}
+        name: ${{ runner.os }}-coverage
         files: ./build/coverage.xml
