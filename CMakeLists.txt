@@ -86,7 +86,8 @@ else()
 endif()
 
 # Enable runtime checking features: TSAN, ASAN, UBSAN
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+message("CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
+if(CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
   option(ENABLE_COVERAGE "Enable coverage reporting for gcc/clang" ON)
   if(ENABLE_COVERAGE)

@@ -1,0 +1,59 @@
+name: C++ CI Windows Clang
+
+on:
+  push:
+    branches: [ main, Windows ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install conan
+      run: |
+          python --version
+          pip install conan gcovr
+          conan --version
+          echo "Enabling conan revisions and setting parallel_download"
+          conan config set general.revisions_enabled=True
+          conan config set general.parallel_download=8
+          conan user
+          mkdir build
+
+    - name: CMake configure
+      working-directory: ./build
+      run: |
+        cmake -G "Visual Studio 16 2019" -A x64 -T ClangCL -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON ../
+
+    - name: Build
+      working-directory: ./build
+      run: |
+        cmake --build . -j 2 --config ${{ env.BUILD_TYPE }}
+
+    - name: Produce coverage report
+      working-directory: ./build
+      shell: bash
+      run: |
+        set -x
+        ./Products/testlib_tests
+        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --xml-pretty --xml coverage.xml .
+
+    - name: Publish to codecov
+      uses: codecov/codecov-action@v2
+      with:
+        files: ./build/coverage.xml
