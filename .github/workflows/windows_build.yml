@@ -1,4 +1,4 @@
-name: C++ CI Windows Clang
+name: C++ CI Windows
 
 on:
   push:
