@@ -20,7 +20,7 @@ bool Person::setName(const std::string& t_newName) {
     fmt::print("Clang: {} was rejected by the government\n", t_newName);
 #elif __GNUC__
     fmt::print("GCC: {} was rejected by the government\n", t_newName);
-#elif __MSC_VER
+#elif _MSC_VER
     fmt::print("MSVC: {} was rejected by the government\n", t_newName);
 #endif
     return false;
