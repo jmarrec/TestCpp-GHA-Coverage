@@ -41,6 +41,8 @@ jobs:
         mkdir build
         echo "Using chocolatey to install OpenCppCoverage"
         choco install opencppcoverage
+        echo "C:/Program Files/OpenCppCoverage" >> $GITHUB_PATH
+
         echo "Using chocolatey to install ninja"
         choco install ninja
 
