@@ -16,7 +16,13 @@ std::string Person::getName() const {
 bool Person::setName(const std::string& t_newName) {
 
   if (std::find(rejectedNames.begin(), rejectedNames.end(), t_newName) != rejectedNames.end()) {
-    fmt::print("{} was rejected by the government\n", t_newName);
+#ifdef __clang__
+    fmt::print("Clang: {} was rejected by the government\n", t_newName);
+#elif __GNUC__
+    fmt::print("GCC: {} was rejected by the government\n", t_newName);
+#elif __MSC_VER
+    fmt::print("MSVC: {} was rejected by the government\n", t_newName);
+#endif
     return false;
   }
 
