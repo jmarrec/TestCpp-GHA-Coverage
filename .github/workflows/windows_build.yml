@@ -51,17 +51,15 @@ jobs:
         # add folder containing vcvarsall.bat
         echo "$MSVC_DIR\VC\Auxiliary\Build" >> $GITHUB_PATH
 
-    - name: CMake configure
+    - name: CMake configure & build
       working-directory: ./build
       shell: cmd
       run: |
         echo "Using vcvarsall to initialize the development environment"
         call vcvarsall.bat x64
-        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DENABLE_COVERAGE:BOOL=ON ../
-
-    - name: Build
-      working-directory: ./build
-      run: |
+        # Note ENABLE_COVERAGE isn't an option on MSVC, it works differently
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug ../
+        # We need vcvarsall.bat to be called in the current step where ninja is invoked, so do that here as well
         ninja
 
     - name: Produce coverage report
