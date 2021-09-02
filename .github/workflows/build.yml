@@ -45,7 +45,8 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           echo "Using brew to install ninja"
           brew install ninja
-          # echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> $GITHUB_ENV
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 10.15"
+          echo "MACOSX_DEPLOYMENT_TARGET=10.15" >> $GITHUB_ENV
           echo "Adding SDKROOT to GITHUB_ENV"
           echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
         fi;
@@ -72,7 +73,7 @@ jobs:
       run: |
         set -x
         ./Products/testlib_tests
-        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --xml-pretty --xml coverage.xml .
+        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v2
