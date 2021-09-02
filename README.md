@@ -27,6 +27,14 @@ There is also a [clang-format action](.github/workflows/clang-format-check.yml) 
 
 `Person.cpp` has a few compiler specific macros, so that we can test merging reports from several platforms on codecov. See [src/Person.cpp#L18-L27](https://github.com/jmarrec/TestCpp-GHA-Coverage/blob/408d98bb68b05222006d052dd6367090827ed8fc/src/Person.cpp#L18-L27)
 
+
+See [PR#5](https://github.com/jmarrec/TestCpp-GHA-Coverage/pull/5) for more info including before/after screenshots when I added Mac in addition to Ubuntu
+
 ![Mac+Ubuntu](https://user-images.githubusercontent.com/5479063/131817697-44e8ac87-577e-4531-9bf5-fd05a07bba28.png)
 
-See [PR#5](https://github.com/jmarrec/TestCpp-GHA-Coverage/pull/5) for more info including before/after screenshots
+
+See [PR#6](https://github.com/jmarrec/TestCpp-GHA-Coverage/pull/6) when I added Windows (via OpenCppCoverage) in addition to Mac and Ubuntu. **Looks like Windows's report don't merge correctly to codecov?**
+
+![image](https://user-images.githubusercontent.com/5479063/131827053-6bff2bdf-ed92-4ddc-aa5a-efcaed3c3220.png)
+
+**Note: Looks like there is a viewing problem where the clang line is no longer green, yet report is correctly at 100%**
