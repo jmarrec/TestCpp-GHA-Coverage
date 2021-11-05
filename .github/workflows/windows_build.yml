@@ -96,3 +96,28 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
+
+    - name: Sign binary
+      working-directory: ./build
+      shell: powershell
+      run: |
+        Install-Module -Name SignPath -Force
+
+        Submit-SigningRequest `
+        -InputArtifactPath "_CPack_Packages/win64/IFW/TestCppCoverage-0.0.1-win64.exe" `
+        -CIUserToken "${{ secrets.SIGNPATH_CI_TOKEN }}" `
+        -OrganizationId "464ceae8-d89f-429b-9104-9a69f83d0b1d" `
+        -ProjectSlug "TestCpp20" `
+        -SigningPolicySlug "No_approval" `
+        -OutputArtifactPath "TestCppCoverage-0.0.1-win64-signed.exe" `
+        -WaitForCompletion
+
+    - name: Upload Signed Binary installer to release
+      if: contains(github.ref, 'refs/tags')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: TestCppCoverage-0.0.1-win64-signed.exe
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
