@@ -203,3 +203,41 @@ include(GoogleTest)
 gtest_discover_tests(testlib_tests
   # WORKING_DIRECTORY Testing
 )
+
+if (APPLE)
+  set(CPACK_IFW_TARGET_DIRECTORY /Applications/TestCpp-GHA-Coverage-${PROJECT_VERSION}/)
+elseif(UNIX)
+
+  # For debug
+  # set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
+
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
+
+  # These two will set the .deb install path correctly
+  set(CPACK_SET_DESTDIR ON)
+  set(CPACK_DEBIAN_PACKAGE_NAME "testcpp-gha-coverage-${PROJECT_VERSION}")
+
+  set(CPACK_INSTALL_PREFIX /usr/local/${CPACK_DEBIAN_PACKAGE_NAME})
+  set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Julien")
+
+elseif(WIN32)
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "TestCpp-GHA-Coverage-${PROJECT_VERSION}")
+  set(CPACK_IFW_TARGET_DIRECTORY "C:/${CPACK_PACKAGE_INSTALL_DIRECTORY}")
+  set(CPACK_BINARY_IFW ON CACHE BOOL "Enable to build IFW packages")
+endif()
+
+include(CPack)
+include(CPackIFW)
+
+cpack_add_component(Libraries
+  DISPLAY_NAME "Libraries"
+  DESCRIPTION "Libraries"
+)
+
+cpack_add_component(Executable
+  DISPLAY_NAME "Test Exe"
+  DESCRIPTION "Test Exe"
+)
+
+install(TARGETS testlib DESTINATION lib COMPONENT Libraries)
+install(TARGETS testlib_tests DESTINATION bin COMPONENT Executable)

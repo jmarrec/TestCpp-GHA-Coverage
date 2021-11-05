@@ -60,7 +60,7 @@ jobs:
         echo "Using vcvarsall to initialize the development environment"
         call vcvarsall.bat x64
         # Note ENABLE_COVERAGE isn't an option on MSVC, it works differently
-        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug ../
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCPACK_BINARY_IFW:BOOL=ON ../
         # We need vcvarsall.bat to be called in the current step where ninja is invoked, so do that here as well
         ninja
 
@@ -75,3 +75,21 @@ jobs:
         flags: ${{ runner.os }}
         name: ${{ runner.os }}-coverage
         files: ./build/coverage.xml
+
+
+    - name: Build package
+      working-directory: ./build
+      shell: bash
+      run: |
+        set -x
+        ninja package
+
+    - name: Upload Binary installer to release
+      if: contains(github.ref, 'refs/tags')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: build/_CPack_Packages/Windows/IFW/*.exe
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true

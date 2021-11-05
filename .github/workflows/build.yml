@@ -17,6 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        include:
+        - os: ubuntu-latest
+          PLATFORM_NAME: Linux
+          BINARY_EXT: run
+        - os: macos-latest
+          PLATFORM_NAME: Darwin
+          BINARY_EXT: dmg
 
     steps:
     - uses: actions/checkout@v2
@@ -34,6 +41,11 @@ jobs:
           conan config set general.revisions_enabled=True
           conan config set general.parallel_download=8
           conan user
+
+    - name: Setup QtIFW 4.x
+      uses: jmarrec/setup-qtifw@v1
+      with:
+        qtifw-version: '4.x'
 
     - name: Install deps
       shell: bash
@@ -58,7 +70,7 @@ jobs:
       shell: bash
       run: |
         set -x
-        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON ../
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON -DCPACK_BINARY_IFW:BOOL=ON ../
 
     - name: Build
       working-directory: ./build
@@ -81,3 +93,21 @@ jobs:
         flags: ${{ runner.os }}
         name: ${{ runner.os }}-coverage
         files: ./build/coverage.xml
+
+    - name: Build package
+      working-directory: ./build
+      shell: bash
+      run: |
+        set -x
+        ninja package
+
+    - name: Upload Binary installer to release
+      if: contains(github.ref, 'refs/tags')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: build/_CPack_Packages/${{ matrix.PLATFORM_NAME }}/IFW/*.${{ matrix.BINARY_EXT }}
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
+
