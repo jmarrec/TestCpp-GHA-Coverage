@@ -92,7 +92,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/_CPack_Packages/Windows/IFW/*.exe
+        file: build/_CPack_Packages/win64/IFW/*.exe
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
