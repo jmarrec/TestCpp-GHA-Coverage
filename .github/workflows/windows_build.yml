@@ -64,7 +64,7 @@ jobs:
         echo "Using vcvarsall to initialize the development environment"
         call vcvarsall.bat x64
         # Note ENABLE_COVERAGE isn't an option on MSVC, it works differently
-        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCPACK_BINARY_IFW:BOOL=ON ../
+        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCPACK_BINARY_IFW:BOOL=ON -DCPACK_BINARY_NSIS:BOOL=OFF ../
         # We need vcvarsall.bat to be called in the current step where ninja is invoked, so do that here as well
         ninja
 
