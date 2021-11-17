@@ -121,3 +121,32 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
+
+    - name: Sign binary with self signing certificate
+      working-directory: ./build/
+      shell: powershell
+      run: |
+        echo "Using vcvarsall to initialize the development environment"
+        call vcvarsall.bat x64
+
+        New-Item -ItemType directory -Path certificate
+        Set-Content -Path certificate\certificate.txt -Value '${{ secrets.SELF_SIGNED_CERTIFICATE_PFX_BASE64 }}'
+        certutil -decode certificate\certificate.txt certificate\certificate.pfx
+
+        signtool sign /tr http://timestamp.globalsign.com/tsa/r6advanced1 /td sha256 /fd sha256 /f certificate\certificate.pfx /p ${{ secrets.SELF_SIGNED_CERTIFICATE_PFX_PASSWORD }} Products\testlib_tests.exe
+
+        cpack
+
+        mv TestCppCoverage-0.0.1-win64.exe TestCppCoverage-0.0.1-win64-self_signed.exe
+
+        signtool sign /tr http://timestamp.globalsign.com/tsa/r6advanced1 /td sha256 /fd sha256 /f certificate\certificate.pfx /p ${{ secrets.SELF_SIGNED_CERTIFICATE_PFX_PASSWORD }} TestCppCoverage-0.0.1-self_signed.exe
+
+    - name: Upload Self-Signed Binary installer to release
+      if: contains(github.ref, 'refs/tags')
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: build/TestCppCoverage-0.0.1-win64-self_signed.exe
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
