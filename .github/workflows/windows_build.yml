@@ -122,16 +122,21 @@ jobs:
 #        overwrite: true
 #        file_glob: true
 
-    - name: Sign binary with self signing certificate
-      working-directory: ./build/
+
+    - name: make pfx
+      working-directory: ./build
       shell: powershell
       run: |
-        echo "Using vcvarsall to initialize the development environment"
-        call vcvarsall.bat x64
-
         New-Item -ItemType directory -Path certificate
         Set-Content -Path certificate\certificate.txt -Value '${{ secrets.SELF_SIGNED_CERTIFICATE_PFX_BASE64 }}'
         certutil -decode certificate\certificate.txt certificate\certificate.pfx
+
+    - name: Sign binary with self signing certificate
+      working-directory: ./build/
+      shell: cmd
+      run: |
+        echo "Using vcvarsall to initialize the development environment"
+        call vcvarsall.bat x64
 
         signtool sign /tr http://timestamp.globalsign.com/tsa/r6advanced1 /td sha256 /fd sha256 /f certificate\certificate.pfx /p ${{ secrets.SELF_SIGNED_CERTIFICATE_PFX_PASSWORD }} Products\testlib_tests.exe
 
