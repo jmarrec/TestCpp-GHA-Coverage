@@ -22,11 +22,11 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.10'
 
     - name: Install conan
       run: |
@@ -78,7 +78,7 @@ jobs:
         OpenCppCoverage.exe --sources TestCpp-GHA-Coverage\src --export_type cobertura:coverage.xml --cover_children -- ctest -C Debug
 
     - name: Publish to codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         flags: ${{ runner.os }}
         name: ${{ runner.os }}-coverage
