@@ -39,7 +39,7 @@ jobs:
     - name: Install conan
       run: |
           python --version
-          pip install conan gcovr
+          pip install conan==1.60.1 gcovr
           conan --version
           echo "Enabling conan revisions and setting parallel_download"
           conan config set general.revisions_enabled=True

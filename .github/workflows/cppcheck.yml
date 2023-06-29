@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  CPPCHECK_VERSION: '2.10'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,18 +18,17 @@ jobs:
     - name: Install cppcheck
       shell: bash
       run: |
-          # Current stable (2.3-25-20201207-23616-ga9f4a14c8, rev 1637) is broken, so use edge for now
-          # cppcheck has been removed completely from snap actually
-          # sudo snap install cppcheck --edge
           mkdir cppcheck
           cd cppcheck
-          wget https://github.com/danmar/cppcheck/archive/2.5.tar.gz
-          tar xfz 2.5.tar.gz
+          wget https://github.com/danmar/cppcheck/archive/$CPPCHECK_VERSION.tar.gz
+          tar xfz $CPPCHECK_VERSION.tar.gz
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ../cppcheck-2.5/
+          cmake -DCMAKE_BUILD_TYPE=Release ../cppcheck-$CPPCHECK_VERSION/
           make -j $(nproc)
           sudo make install
+          cd ..
+          rm -Rf cppcheck
 
     - name: Run cppcheck
       shell: bash
