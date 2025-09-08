@@ -9,8 +9,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Use ccache is available, has to be before "project()"
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
-  # Support Unix Makefiles and Ninja
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+  # Support: Unix Makefiles and Ninja only
+  message(STATUS "Using CCACHE")
+  # RULE_LAUNCH_COMPILE is an internal variable and makes RC compilation fail on windows, hence why we use the C/CXX COMPILER_LAUNCHER instead
+  message(STATUS "${CCACHE_PROGRAM} found and enabled")
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM} CACHE FILEPATH "CXX compiler cache used")
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM} CACHE FILEPATH "C compiler cache used")
 endif()
 
 project(TestCppCoverage VERSION 0.0.1)
@@ -129,55 +133,9 @@ endif()
 #                              C O N A N                              #
 #######################################################################
 
-set(CMAKE_CONAN_EXPECTED_HASH
-    5cdb3042632da3efff558924eecefd580a0e786863a857ca097c3d1d43df5dcd)
-set(CMAKE_CONAN_VERSION "0.18.1")
+find_package(fmt REQUIRED)
+find_package(GTest REQUIRED)
 
-if(EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-  file(SHA256 "${CMAKE_BINARY_DIR}/conan.cmake" CMAKE_CONAN_HASH)
-elseif(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake"
-       OR NOT "${CMAKE_CONAN_HASH}" MATCHES "${CMAKE_CONAN_EXPECTED_HASH}")
-  # Put it in CMAKE_BINARY_DIR so we don't end up with two when building OpenStudioApplication
-  message(
-    STATUS
-      "openstudio: Downloading conan.cmake ${CMAKE_CONAN_VERSION} from https://github.com/conan-io/cmake-conan"
-  )
-  file(
-    DOWNLOAD
-    "https://raw.githubusercontent.com/conan-io/cmake-conan/${CMAKE_CONAN_VERSION}/conan.cmake"
-    "${CMAKE_BINARY_DIR}/conan.cmake"
-    EXPECTED_HASH SHA256=${CMAKE_CONAN_EXPECTED_HASH}
-    TLS_VERIFY ON)
-else()
-  message(STATUS "openstudio: using existing conan.cmake")
-endif()
-
-include(${CMAKE_BINARY_DIR}/conan.cmake)
-
-conan_check(VERSION 1.53.0 REQUIRED)
-
-message(STATUS "RUNNING CONAN")
-
-list(APPEND CONAN_BUILD "missing")
-
-conan_cmake_run(REQUIRES
-  fmt/10.0.0
-  gtest/1.13.0
-  BASIC_SETUP CMAKE_TARGETS NO_OUTPUT_DIRS
-  OPTIONS ${CONAN_OPTIONS}
-  BUILD ${CONAN_BUILD}
-  # Passes `-u, --update`    to conan install: Check updates exist from upstream remotes
-  # That and build=outdated should ensure we track the right
-  # UPDATE
-)
-
-message("CONAN_LIBS=${CONAN_LIBS}")
-
-# Search first in the binary dir, where conan will install finders, then
-# search for modules in the root dir to override cmake ones
-# Start with ROOT, then PROJECT_BINARY_DIR
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/CMake")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 ###############################################################################
 #                              E X E C U T A B L E                            #
@@ -190,7 +148,7 @@ add_library(testlib
   src/Person.cpp
 )
 
-target_link_libraries(testlib PRIVATE project_options CONAN_PKG::fmt)
+target_link_libraries(testlib PRIVATE project_options fmt::fmt)
 
 add_executable(testlib_tests
   test/Person_GTest.cpp
@@ -198,7 +156,7 @@ add_executable(testlib_tests
 target_link_libraries(testlib_tests
   PRIVATE
   testlib
-  CONAN_PKG::gtest
+  GTest::gtest_main
 )
 target_link_libraries(testlib_tests
   PRIVATE

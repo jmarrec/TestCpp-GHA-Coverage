@@ -34,17 +34,22 @@ jobs:
 
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.12'
 
     - name: Install conan
       run: |
           python --version
-          pip install conan==1.60.1 gcovr
+          pip install git+https://github.com/gcovr/gcovr.git
+          pip install "conan>=2"
+          # Dev version gained a markdown option that wasn't in 8.3 yet, so use it
+          pip install git+https://github.com/gcovr/gcovr.git
           conan --version
           echo "Enabling conan revisions and setting parallel_download"
-          conan config set general.revisions_enabled=True
-          conan config set general.parallel_download=8
-          conan user
+          conan profile detect --force --name default
+          conan profile path default
+          conan profile show
+          echo "core:non_interactive = True" >> $HOME/global.conf
+          echo "core.download:parallel = {{os.cpu_count() - 2}}" >> $HOME/global.conf
 
     - name: Setup QtIFW 4.x
       uses: jmarrec/setup-qtifw@v1
@@ -70,18 +75,18 @@ jobs:
         mkdir build
 
     - name: CMake configure
-      working-directory: ./build
+      working-directory:
       shell: bash
       run: |
         set -x
-        cmake -G Ninja -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON -DCPACK_BINARY_IFW:BOOL=ON ../
+        conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
+        cmake --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DENABLE_COVERAGE:BOOL=ON -DCPACK_BINARY_IFW:BOOL=ON
 
     - name: Build
       working-directory: ./build
       shell: bash
       run: |
-        set -x
-        ninja
+        cmake --build --preset conan-debug --target package
 
     - name: Produce coverage report
       working-directory: ./build
@@ -90,6 +95,7 @@ jobs:
         set -x
         ctest -j $(nproc)
         gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
+        gcovr --root ../ --markdown-summary >> $GITHUB_STEP_SUMMARY
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v3
@@ -103,6 +109,7 @@ jobs:
       shell: bash
       run: |
         set -x
+        . ./conanbuild.sh
         ninja package
 
     - name: Upload Binary installer to release
