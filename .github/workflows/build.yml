@@ -71,6 +71,10 @@ jobs:
           echo "SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> $GITHUB_ENV
         fi;
 
+        NPROC=$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
+        echo "There are $NPROC threads available"
+        echo "NPROC=$NPROC" >> $GITHUB_ENV
+
         mkdir build
 
     - name: CMake configure
@@ -92,9 +96,9 @@ jobs:
       shell: bash
       run: |
         set -x
-        ctest -j $(nproc)
-        gcovr -j $(nproc) --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
-        gcovr --root ../ --markdown-summary >> $GITHUB_STEP_SUMMARY
+        ctest -j $NPROC
+        gcovr -j $NPROC --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
+        gcovr -j $NPROC --root ../ --markdown-summary >> $GITHUB_STEP_SUMMARY
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v5
