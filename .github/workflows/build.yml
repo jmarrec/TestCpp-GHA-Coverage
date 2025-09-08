@@ -107,7 +107,7 @@ jobs:
           --print-summary \
           --xml-pretty --xml coverage.xml \
           --html=html/index.html --html-details \
-          --markdown-summary=summary.md
+          --markdown=summary.md
         cat summary.md >> $GITHUB_STEP_SUMMARY
 
     - name: Publish to codecov
