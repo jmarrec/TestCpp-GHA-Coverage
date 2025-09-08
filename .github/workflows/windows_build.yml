@@ -66,7 +66,6 @@ jobs:
         echo "$MSVC_DIR\VC\Auxiliary\Build" >> $GITHUB_PATH
 
     - name: CMake configure & build
-      working-directory: ./build
       shell: cmd
       run: |
         conan install . --build=missing -c tools.cmake.cmaketoolchain:generator=Ninja -s compiler.cppstd=20 -s build_type=Debug --output-folder=build
@@ -74,7 +73,7 @@ jobs:
         # Note ENABLE_COVERAGE isn't an option on MSVC, it works differently
         cmake --preset conan-debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DCPACK_BINARY_IFW:BOOL=ON -DCPACK_BINARY_NSIS:BOOL=OFF
         # We need vcvarsall.bat to be called in the current step where ninja is invoked, so do that here as well
-        ninja
+        cmake --build --preset conan-debug --target package
 
     - name: Produce coverage report
       working-directory: ./build

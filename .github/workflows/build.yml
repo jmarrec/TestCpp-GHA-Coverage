@@ -97,8 +97,14 @@ jobs:
       run: |
         set -x
         ctest -j $NPROC
-        gcovr -j $NPROC --delete --root ../ --exclude '.*GTest.cpp' --print-summary --xml-pretty --xml coverage.xml .
-        gcovr -j $NPROC --root ../ --markdown-summary >> $GITHUB_STEP_SUMMARY
+        mkdir html
+        gcovr -j $NPROC --root ../ --exclude '.*GTest.cpp' \
+          --gcov-ignore-errors=source_not_found \
+          --print-summary \
+          --xml-pretty --xml coverage.xml \
+          --html=html/index.html --html-details \
+          --markdown-summary=summary.md
+        cat summary.md >> $GITHUB_STEP_SUMMARY
 
     - name: Publish to codecov
       uses: codecov/codecov-action@v5
@@ -107,6 +113,12 @@ jobs:
         name: ${{ runner.os }}-coverage
         files: ./build/coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Upload html
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ runner.os }}-coverage-results
+        path: ./build/html
 
     - name: Build package
       working-directory: ./build
