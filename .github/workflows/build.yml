@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  BUILD_PACKAGE: false
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -52,6 +55,7 @@ jobs:
 
     - name: Setup QtIFW 4.x
       uses: jmarrec/setup-qtifw@v1
+      if: env.BUILD_PACKAGE == 'true'
       with:
         qtifw-version: '4.8.1'
 
@@ -89,7 +93,7 @@ jobs:
       working-directory: ./build
       shell: bash
       run: |
-        cmake --build --preset conan-debug --target package
+        cmake --build --preset conan-debug
 
     - name: Produce coverage report
       working-directory: ./build
@@ -123,13 +127,14 @@ jobs:
     - name: Build package
       working-directory: ./build
       shell: bash
+      if: env.BUILD_PACKAGE == 'true'
       run: |
         set -x
         . ./conanbuild.sh
         ninja package
 
     - name: Upload Binary installer to release
-      if: contains(github.ref, 'refs/tags')
+      if: contains(github.ref, 'refs/tags') && env.BUILD_PACKAGE == 'true'
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
