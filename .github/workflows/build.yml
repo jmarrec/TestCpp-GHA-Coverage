@@ -102,6 +102,7 @@ jobs:
         flags: ${{ runner.os }}
         name: ${{ runner.os }}-coverage
         files: ./build/coverage.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Build package
       working-directory: ./build
